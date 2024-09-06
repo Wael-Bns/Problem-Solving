@@ -1,0 +1,130 @@
+// Wael Benslimene DrStonee
+
+#include<bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+
+using namespace std;
+using namespace __gnu_pbds;
+
+template <class T>
+using ordered_set = tree<T, null_type, less_equal<T>, rb_tree_tag, tree_order_statistics_node_update>;
+#ifndef ONLINE_JUDGE
+#include "debug.cpp"
+#endif
+
+const long long mod=1e9+7;
+const long long MOD=998244353;
+#define ll long long
+#define endl '\n'
+#define FAST ios::sync_with_stdio(false);cin.tie(0);cout.tie(0)
+#define ff first
+#define ss second
+#define INF 1e18+5
+#define yes cout<<"YES"<<endl
+#define no cout<<"NO"<<endl
+#define pb push_back
+#define mp make_pair
+#define all(x) (x).begin(),(x).end()
+#define rall(x) (x).rbegin(),(x).rend()
+
+
+ll binpow(ll a,ll b){ll res=1;while(b>0){if(b&1)res=(res*a);a=((a)*(a));b/=2;}return res;}
+ll gcd(ll a,ll b){return b==0 ? a:gcd(b,a%b);}
+ll lcm(ll a,ll b){return (a/gcd(a,b))*b;}
+ 
+
+const int N=1e5+5;
+
+vector<int> adj[N];
+int sz[N],a[N];
+ll ans=0;
+map<int,int>* cnt[N];
+
+void dfs(int v=1,int par=0)
+{
+    sz[v]=1;
+    int mx=-1,bigChild=-1;
+    for(int u:adj[v])
+    {
+        if(u!=par)
+        {
+            dfs(u,v);
+            sz[v]+=sz[u];
+            int k=cnt[u]->size();
+            if(k>mx)mx=k,bigChild=u;
+            ans+=sz[u];
+        }
+    }
+    ans++;
+    ll curr=0,k=0;
+    if(bigChild!=-1)
+    {
+        cnt[v]=cnt[bigChild];
+        for(int i=1;i*i<=a[v];i++)
+        {
+            if(a[v]%i==0)
+            {
+                int xx=i,yy=a[v]/i;
+                if(cnt[v]->count(xx))curr+=(*cnt[v])[xx];
+                if(yy!=xx && cnt[v]->count(yy))curr+=(*cnt[v])[yy];
+            }
+        }
+        ans+=1ll*curr*(sz[v]-sz[bigChild]-1);
+        k=curr;
+    }
+    else
+    {
+        cnt[v]=new map<int,int>();
+    }
+    (*cnt[v])[a[v]]++;
+    for(int u:adj[v])
+    {
+        if(u!=par && u!=bigChild)
+        {
+            curr=0;
+            for(auto x:(*cnt[u]))
+            {
+                if(a[v]%x.ff==0)curr+=x.ss;
+                (*cnt[v])[x.ff]+=x.ss;
+            }
+            ans+=1ll*curr*(sz[v]-sz[u]-1-k);
+            k+=curr;
+        }
+    }
+
+}
+
+void solve()
+{
+    int n;cin>>n;
+    for(int i=1;i<=n;i++)
+    {
+        cin>>a[i];
+    }    
+    for(int i=0;i<n-1;i++)
+    {
+        int u,v;cin>>u>>v;
+        adj[u].pb(v);
+        adj[v].pb(u);
+    }
+    dfs();
+    cout<<ans<<endl;
+}   
+
+
+int main()
+{
+    FAST;
+    #ifndef ONLINE_JUDGE
+    freopen("input.txt","r",stdin);
+    freopen("output.txt","w",stdout);
+    #endif
+    int t=1;
+    // cin>>t;
+    while(t--)
+    {
+        solve();
+    }
+
+    return 0;
+}

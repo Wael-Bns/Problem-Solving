@@ -1,0 +1,152 @@
+// Wael Benslimene DrStonee
+
+#include<bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+
+using namespace std;
+using namespace __gnu_pbds;
+
+template <class T>
+using ordered_set = tree<T, null_type, less_equal<T>, rb_tree_tag, tree_order_statistics_node_update>;
+#ifndef ONLINE_JUDGE
+#include "debug.cpp"
+#endif
+
+const long long mod=1e9+7;
+const long long MOD=998244353;
+#define ll long long
+#define endl '\n'
+#define FAST ios::sync_with_stdio(false);cin.tie(0);cout.tie(0)
+#define ff first
+#define ss second
+#define INF 1e18+5
+#define yes cout<<"YES"<<endl
+#define no cout<<"NO"<<endl
+#define pb push_back
+#define mp make_pair
+#define all(x) (x).begin(),(x).end()
+#define rall(x) (x).rbegin(),(x).rend()
+
+
+ll binpow(ll a,ll b){ll res=1;while(b>0){if(b&1)res=(res*a);a=((a)*(a));b/=2;}return res;}
+ll gcd(ll a,ll b){return b==0 ? a:gcd(b,a%b);}
+ll lcm(ll a,ll b){return (a/gcd(a,b))*b;}
+ 
+
+const int N=2e5+5;
+
+vector<int> adj[N];
+int a[N],st[8*N],depth[N];
+int tin[N],node[2*N],timer=1;
+int val[N][1001];
+
+int mn_el(int x,int y)
+{
+    if(x==0)return y;
+    if(y==0)return x;
+    return depth[x]<depth[y] ? x:y;
+}
+
+void build(int v=1,int l=1,int r=timer-1)
+{
+    if(l==r)
+    {
+        st[v]=node[l];
+        return ;
+    }
+    int md=(l+r)/2;
+    build(2*v,l,md);
+    build(2*v+1,md+1,r);
+    st[v]=mn_el(st[2*v],st[2*v+1]);
+}
+
+int qry(int l,int r,int v=1,int sl=1,int sr=timer-1)
+{
+    if(sl>r || sr<l)
+    {
+        return 0;
+    }
+    if(sl>=l && sr<=r)
+    {
+        return st[v];
+    }
+    int md=(sl+sr)/2;
+    return mn_el(qry(l,r,2*v,sl,md),
+                        qry(l,r,2*v+1,md+1,sr));
+}
+
+int lca(int a,int b)
+{
+    if(tin[a]>tin[b])swap(a,b);
+    return qry(tin[a],tin[b]);
+}   
+
+void euler_tour(int v=1,int par=0)
+{
+    node[timer]=v;
+    tin[v]=timer++;
+    for(auto u:adj[v])
+    {
+        if(u!=par)
+        {
+            depth[u]=depth[v]+1;
+            for(int x=2;x<=1000;x++)
+            {
+                val[u][x]=val[v][x];
+                if(a[u]%x!=0)val[u][x]+=x-a[u]%x;
+            }
+            euler_tour(u,v);
+            node[timer++]=v;
+        }
+    }
+}
+
+void solve()
+{
+    int n,q;cin>>n>>q;
+    for(int i=1;i<=n;i++)cin>>a[i],adj[i].clear();
+    for(int i=0;i<n-1;i++)
+    {
+        int u,v;cin>>u>>v;
+        adj[u].pb(v);
+        adj[v].pb(u);
+    }
+    for(int x=2;x<=1000;x++)
+    {
+        if(a[1]%x!=0)val[1][x]+=x-a[1]%x;
+    }
+    euler_tour();
+    build();
+    while(q--)
+    {
+        int u,v;cin>>u>>v;
+        int w=lca(u,v);
+        ll res=INF;
+        for(int i=2;i<=1000;i++)
+        {
+            ll x=val[u][i]+val[v][i]-2*val[w][i];
+            if(a[w]%i!=0)x+=i-a[w]%i;
+            res=min(res,x);
+        }
+        cout<<res<<endl;
+    }
+
+}   
+
+
+int main()
+{
+    FAST;
+    #ifndef ONLINE_JUDGE
+    freopen("input.txt","r",stdin);
+    freopen("output.txt","w",stdout);
+    #endif
+    int t=1;
+    cin>>t;
+    while(t--)
+    {
+        solve();
+    }
+
+    return 0;
+}
